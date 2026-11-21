@@ -6,12 +6,16 @@ A measurement-driven 3D body component for React. Bring your own measurements an
 
 > **Preview:** `0.1.0-rc.2`. Anatomical male/female human meshes based on MakeHuman's CC0 assets, with authored body-shape morphs and measurement fitting. This replaces the earlier primitive-based model. The result is still an approximate visualization, not a body scan or validated reconstruction.
 
+## Demo
+
+A live demo is deployed to GitHub Pages: <https://dantehemerson.github.io/body-shape/>
+
 ## Local demo
 
 ```sh
 mise install          # or use Node 22.14+
 npm ci
-npm run dev          # http://127.0.0.1:5173
+npm run dev          # http://127.0.0.1:5173/body-shape/
 ```
 
 The demo includes both adult templates, live inputs, metric/imperial conversion, camera presets, measurement guides, surface colors, JSON export and a live component example. Measurements are held in memory, not uploaded or persisted. The demo loads optional Google Fonts; the library makes no network requests.
