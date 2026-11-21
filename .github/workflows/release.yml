@@ -1,0 +1,56 @@
+name: Publish npm release
+
+# "published" covers stable releases AND prereleases, but never drafts.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+      - name: Use npm with trusted-publishing support
+        run: npm install --global npm@11
+      - name: Validate version and release channel
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: npm run release:validate
+      - run: npm ci
+      - run: npm run check
+      - name: Pack and test the actual release artifact
+        run: |
+          npm pack --ignore-scripts
+          node scripts/smoke-package.mjs dantehemerson-react-body-shape-*.tgz
+      - name: Preserve release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-${{ steps.release.outputs.version }}
+          path: '*.tgz'
+          if-no-files-found: error
+      - name: Publish to the correct npm channel
+        env:
+          # Optional bootstrap secret for the first publish. Afterwards configure
+          # npm's GitHub trusted publisher and remove this secret to use OIDC.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CHANNEL: ${{ steps.release.outputs.npm_tag }}
+        run: npm publish dantehemerson-react-body-shape-*.tgz --access public --provenance --tag "$NPM_CHANNEL"
