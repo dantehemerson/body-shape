@@ -1,6 +1,9 @@
 name: Publish npm release
 
 # "published" covers stable releases AND prereleases, but never drafts.
+# Requires npm Trusted Publishing (OIDC) configured on npmjs.com for
+# @dantehemerson/react-body-shape: repository dantehemerson/body-shape,
+# workflow .github/workflows/release.yml, environment left empty.
 on:
   release:
     types: [published]
@@ -49,8 +52,8 @@ jobs:
           if-no-files-found: error
       - name: Publish to the correct npm channel
         env:
-          # Optional bootstrap secret for the first publish. Afterwards configure
-          # npm's GitHub trusted publisher and remove this secret to use OIDC.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Auth via npm Trusted Publishing (OIDC): the job's id-token: write
+          # permission lets npm@11 exchange the GitHub Actions identity for a
+          # short-lived publish token. No repository secret is involved.
           NPM_CHANNEL: ${{ steps.release.outputs.npm_tag }}
         run: npm publish dantehemerson-react-body-shape-*.tgz --access public --provenance --tag "$NPM_CHANNEL"
