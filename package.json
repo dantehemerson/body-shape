@@ -1,6 +1,6 @@
 {
   "name": "@dantehemerson/react-body-shape",
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0",
   "description": "A measurement-driven, interactive 3D human body component for React.",
   "type": "module",
   "license": "MIT AND CC0-1.0",

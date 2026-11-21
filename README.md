@@ -4,7 +4,7 @@ A measurement-driven 3D body component for React. Bring your own measurements an
 
 **React 19 · TypeScript · Three.js · MIT code / CC0 assets · no remote model assets**
 
-> **Preview:** `0.1.0-rc.2`. Anatomical male/female human meshes based on MakeHuman's CC0 assets, with authored body-shape morphs and measurement fitting. This replaces the earlier primitive-based model. The result is still an approximate visualization, not a body scan or validated reconstruction.
+> **Stable:** `0.1.0` — anatomical male/female human meshes based on MakeHuman's CC0 assets, with authored body-shape morphs and measurement fitting. This replaces the earlier primitive-based model. The result is still an approximate visualization, not a body scan or validated reconstruction.
 
 ## Demo
 
@@ -22,25 +22,22 @@ The demo includes both adult templates, live inputs, metric/imperial conversion,
 
 ## Install
 
-Once the first GitHub release has successfully published:
-
 ```sh
-# Release candidates
-npm install @dantehemerson/react-body-shape@next three
-
-# Stable releases (after a stable version has been published)
 npm install @dantehemerson/react-body-shape three
+
+# Or track the prerelease channel
+npm install @dantehemerson/react-body-shape@next three
 ```
 
 React and React DOM 19 are peer dependencies. Three.js is also a peer dependency so the consumer owns the renderer version. Use Three.js 0.170+ (tested with 0.181).
 
-Before npm publication, build and install the local tarball:
+For offline evaluation, build and install the local tarball:
 
 ```sh
 npm run build:lib
 npm pack --ignore-scripts
 # In ../dash (or another app):
-npm install ../body-shape/dantehemerson-react-body-shape-0.1.0-rc.2.tgz three
+npm install ../body-shape/dantehemerson-react-body-shape-0.1.0.tgz three
 ```
 
 ## React usage
