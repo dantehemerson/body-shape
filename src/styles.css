@@ -3,6 +3,7 @@
   --bs-ink: #263d32; --bs-muted: #5f6a60; --bs-accent: #47765f; --bs-border: #c9cfc4;
   position: relative; isolation: isolate; min-width: 0; min-height: 32rem;
   color: var(--bs-ink); border-radius: 1rem; overflow: hidden; font-family: inherit;
+  content-visibility: auto; contain-intrinsic-size: auto none auto 32rem;
 }
 .bs-canvas { position: absolute; inset: 0 0 3rem; }
 .bs-canvas:focus-visible { outline: 3px solid var(--bs-accent); outline-offset: -4px; border-radius: 1rem; }

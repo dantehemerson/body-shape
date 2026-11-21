@@ -2,8 +2,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BufferGeometry, Vector3 } from 'three';
 import { OrbitControls } from 'three-stdlib';
-import { createBodyGeometry, getBodyLandmarks, type GeometryQuality } from './geometry';
-import { ellipseRadii, type ResolvedBody } from './measurements';
+import { createBodyGeometry, getBodyGeometryMetadata, type GeometryQuality } from './geometry';
+import { type ResolvedBody } from './measurements';
 import type { ViewCommand } from './BodyVisualizer';
 
 interface SceneProps {
@@ -57,17 +57,19 @@ function CameraControls({ height, command, autoRotate }: { height: number; comma
   return null;
 }
 
-function Ring({ width, depth, y, color }: { width: number; depth: number; y: number; color: string }) {
+function Ring({ points, color }: { points: [number, number, number][]; color: string }) {
   const geometry = useMemo(() => {
-    const points = Array.from({ length: 128 }, (_, i) => {
-      const t = i / 128 * Math.PI * 2;
-      return new Vector3(Math.cos(t) * width, y, Math.sin(t) * depth);
+    const centroid = points.reduce((center, p) => center.add(new Vector3(...p)), new Vector3()).divideScalar(points.length);
+    const surface = points.map(point => {
+      const position = new Vector3(...point);
+      // Lift the actual surface contour very slightly to avoid z-fighting.
+      return position.add(position.clone().sub(centroid).normalize().multiplyScalar(0.0015));
     });
-    return new BufferGeometry().setFromPoints(points);
-  }, [width, depth, y]);
+    return new BufferGeometry().setFromPoints(surface);
+  }, [points]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return <lineLoop geometry={geometry} renderOrder={2}>
-    <lineBasicMaterial color={color} transparent opacity={0.85} depthTest={false} />
+    <lineBasicMaterial color={color} transparent opacity={0.85} />
   </lineLoop>;
 }
 
@@ -80,17 +82,13 @@ function Body({ body, quality, muscle, color, showMeasurements, measurementColor
   }, [body, quality, muscle]);
   const geometry = useMemo(() => createBodyGeometry(shape.body, shape.quality, shape.muscle), [shape]);
   useEffect(() => () => geometry.dispose(), [geometry]);
-  const landmarks = getBodyLandmarks(shape.body);
-  const m = shape.body.measurements;
+  const metadata = getBodyGeometryMetadata(geometry);
   return <>
     <mesh geometry={geometry} castShadow receiveShadow dispose={null}>
-      <meshStandardMaterial color={color} roughness={0.73} metalness={0.04} />
+      <meshStandardMaterial color={color} roughness={0.65} metalness={0.02} />
     </mesh>
-    {showMeasurements && (['chest', 'waist', 'hips'] as const).map(key => {
-      const ratio = key === 'chest' ? (shape.body.template === 'female' ? 1.5 : 1.55) : key === 'waist' ? 1.42 : shape.body.template === 'female' ? 1.48 : 1.38;
-      const [width, depth] = ellipseRadii(m[key] / 100, ratio);
-      return <Ring key={key} width={width + 0.004} depth={depth + 0.004} y={landmarks[key]} color={measurementColor} />;
-    })}
+    {showMeasurements && metadata.guides.map(guide =>
+      <Ring key={guide.key} points={guide.points} color={measurementColor} />)}
   </>;
 }
 
@@ -101,11 +99,12 @@ export default function Scene(props: SceneProps) {
     gl={{ antialias: true, alpha: true }}
     style={{ position: 'absolute', inset: 0 }}
     onCreated={({ gl }) => { gl.domElement.setAttribute('aria-hidden', 'true'); }}>
-    <hemisphereLight args={['#fffdf1', '#8c9285', 2]} />
-    <directionalLight position={[-h, h * 1.8, h * 1.4]} intensity={3.4} castShadow
-      shadow-mapSize={[1024, 1024]} shadow-bias={-0.0005}
+    <hemisphereLight args={['#fffdf8', '#929b91', 1.6]} />
+    <directionalLight position={[-h, h * 1.8, h * 1.4]} intensity={2.5} castShadow
+      shadow-mapSize={[2048, 2048]} shadow-bias={-0.00015}
       shadow-camera-left={-h} shadow-camera-right={h} shadow-camera-top={h} shadow-camera-bottom={-h} />
-    <directionalLight position={[h, h, -h]} intensity={2} color="#d9e6ed" />
+    <directionalLight position={[h, h * 0.8, h]} intensity={0.7} color="#e3e9e5" />
+    <directionalLight position={[h, h, -h]} intensity={1.8} color="#e4e8ed" />
     <Body {...props} />
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.003, 0]} receiveShadow>
       <planeGeometry args={[h * 8, h * 8]} />

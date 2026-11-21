@@ -30,8 +30,9 @@ try {
     import { createElement } from 'react';
     import { renderToString } from 'react-dom/server';
     import { BodyVisualizer, MeasurementEditor } from '@dantehemerson/react-body-shape';
-    import { resolveMeasurements, createBodyGeometry } from '@dantehemerson/react-body-shape/core';
-    import { readFileSync } from 'node:fs';
+    import { resolveMeasurements, createBodyGeometry, getBodyGeometryMetadata } from '@dantehemerson/react-body-shape/core';
+    import { readFileSync, existsSync } from 'node:fs';
+    import { fileURLToPath } from 'node:url';
     const measurements = {height: 180, weight: 82, waist: 86};
     const html = renderToString(createElement(BodyVisualizer, {measurements}));
     if (!html.includes('Preparing your 3D view')) throw new Error('SSR shell missing.');
@@ -39,9 +40,12 @@ try {
     if (!editor.includes('Height')) throw new Error('Editor missing.');
     const geometry = createBodyGeometry(resolveMeasurements(measurements), 'low');
     if (geometry.getAttribute('position').count < 1000) throw new Error('Packaged core mesh failed.');
+    if (getBodyGeometryMetadata(geometry).source.license !== 'CC0-1.0') throw new Error('Wrong model source.');
     geometry.dispose();
-    const css = readFileSync(import.meta.resolve('@dantehemerson/react-body-shape/styles.css').replace('file://', ''), 'utf8');
+    const css = readFileSync(fileURLToPath(import.meta.resolve('@dantehemerson/react-body-shape/styles.css')), 'utf8');
     if (!css.includes('.bs-viewer')) throw new Error('Styles missing.');
+    if (!existsSync('node_modules/@dantehemerson/react-body-shape/licenses/MakeHuman-CC0-1.0.md')) throw new Error('Model license missing.');
+    if (!existsSync('node_modules/@dantehemerson/react-body-shape/THIRD_PARTY_NOTICES.md')) throw new Error('Model provenance missing.');
     console.log('Packed install, typed exports, SSR shell, editor, core geometry and CSS: OK');
   `);
   run(process.execPath, ['verify.mjs']);

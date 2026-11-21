@@ -1,9 +1,9 @@
 {
   "name": "@dantehemerson/react-body-shape",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "description": "A measurement-driven, interactive 3D human body component for React.",
   "type": "module",
-  "license": "MIT",
+  "license": "MIT AND CC0-1.0",
   "author": "Dante Hemerson",
   "repository": {
     "type": "git",
@@ -22,7 +22,10 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses",
+    "src/assets/human.provenance.json"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -55,7 +58,8 @@
     "check": "npm run typecheck && npm test && npm run build",
     "preview": "vite preview --host 127.0.0.1",
     "prepack": "npm run build:lib",
-    "release:validate": "node scripts/validate-release.mjs"
+    "release:validate": "node scripts/validate-release.mjs",
+    "assets:prepare": "node scripts/prepare-human-assets.mjs"
   },
   "overrides": {
     "esbuild": "^0.28.1"

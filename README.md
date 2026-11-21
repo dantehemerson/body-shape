@@ -2,9 +2,9 @@
 
 A measurement-driven 3D body component for React. Bring your own measurements and interface, or use the optional editor.
 
-**React 19 · TypeScript · Three.js · MIT · no remote model assets**
+**React 19 · TypeScript · Three.js · MIT code / CC0 assets · no remote model assets**
 
-> **Preview:** `0.1.0-rc.1`. This is an original, stylized procedural human mesh, not a photorealistic avatar or body scan. Local circumferences influence elliptical cross sections; the resulting blended surface is approximate, not a validated reconstruction.
+> **Preview:** `0.1.0-rc.2`. Anatomical male/female human meshes based on MakeHuman's CC0 assets, with authored body-shape morphs and measurement fitting. This replaces the earlier primitive-based model. The result is still an approximate visualization, not a body scan or validated reconstruction.
 
 ## Local demo
 
@@ -36,7 +36,7 @@ Before npm publication, build and install the local tarball:
 npm run build:lib
 npm pack --ignore-scripts
 # In ../dash (or another app):
-npm install ../body-shape/dantehemerson-react-body-shape-0.1.0-rc.1.tgz three
+npm install ../body-shape/dantehemerson-react-body-shape-0.1.0-rc.2.tgz three
 ```
 
 ## React usage
@@ -178,7 +178,7 @@ const { measurements, estimatedKeys, bmi } =
 | `template` | `"male"` | `"male"` or `"female"` adult frame |
 | `units` | `"metric"` | `"metric"` or `"imperial"` |
 | `muscle` | `0.35` | Visual definition, 0–1; **not** muscle mass |
-| `color` | `"#b4c1b0"` | Surface color |
+| `color` | `"#c2c5c1"` | Surface color |
 | `background` | `"#f0f0e9"` | CSS background |
 | `measurementColor` | `"#47765f"` | Guide color |
 | `showMeasurements` | `false` | Chest, waist and hip guides + legend |
@@ -196,13 +196,23 @@ Pointer: drag to orbit and scroll/pinch to zoom. Keyboard: focus the model, then
 
 ## Geometry and accuracy
 
-The original mesh is generated locally using an implicit field, smooth unions and indexed marching tetrahedra. No assets or source code are taken from the reference sites. There are no model-asset licensing requirements beyond the MIT code license.
+The bundled mesh and shape-target **assets** come from MakeHuman Community under **CC0 1.0**, pinned to a specific revision with an asset hash inventory. Its application code is not incorporated. The package's decoder, fitting logic, Catmull–Clark subdivision, React components and rendering are independently implemented, MIT-licensed code. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`licenses/MakeHuman-CC0-1.0.md`](licenses/MakeHuman-CC0-1.0.md).
 
-The body includes a continuous torso, neck, head, limbs, hands and feet. Tape values set local elliptical section targets, while joint blending and surrounding anatomy affect the final surface. **Do not use it to fit garments to exact dimensions, infer body fat, diagnose health, or predict weight-loss appearance.** Guide rings are illustrative target sections, not a measurement of the generated surface.
+The body uses an authored anatomical control mesh with a face, eyes, ears, hands, fingers, feet, and toes—not blended mathematical shapes. Adult frame and muscle/weight morphs are blended, then fitting logic calibrates authored measurement targets against connected mesh cross sections. Catmull–Clark subdivision preserves the anatomical topology while smoothing the surface.
 
-Mesh changes are debounced by 120ms; rendering is on-demand unless auto-rotation is enabled. High quality generates more triangles and can briefly occupy the main thread during input changes. Use low/medium on smaller devices. Changing `muscle` changes artistic limb fullness; it does not solve body composition from weight.
+Guide rings follow the actual generated surface contours, not independent ellipses. Circumference targets are approximate: neighboring morphs, subdivision and proportion adjustments interact. Extrapolation is limited to protect anatomy at extreme or inconsistent measurement combinations. `getBodyGeometryMetadata(geometry)` exposes actual guide circumferences, requested targets and any fitting limits.
 
-Advanced consumers can import `createBodyGeometry` and `getBodyLandmarks` from `/core`. World coordinates are meters, Y is up and +Z is forward. The caller must dispose geometries it creates.
+**Do not use it to fit garments to exact dimensions, infer body fat, diagnose health, or predict weight-loss appearance.** Shape fitting is not a validated reconstruction of a specific person.
+
+Mesh changes are debounced by 120ms; rendering is on-demand unless auto-rotation is enabled. Low quality uses the control mesh; medium applies one subdivision level (~54k vertices); high applies two levels. Topology plans are cached. Use low/medium on smaller devices. Auto-rotation pauses when the tab is hidden or the viewer is skipped off-screen, and respects reduced motion. `muscle` blends authored whole-body shapes; it does not solve body composition from weight.
+
+The model is bundled into the package; no model server, CDN, asset URL configuration, or external download is needed at runtime. To regenerate the pinned asset data and provenance manifest:
+
+```sh
+npm run assets:prepare
+```
+
+Advanced consumers can import `createBodyGeometry`, `getBodyLandmarks`, and `getBodyGeometryMetadata` from `/core`. World coordinates are meters, Y is up and +Z is forward. The caller must dispose geometries it creates.
 
 ## Releasing
 
@@ -258,7 +268,7 @@ Promotion is a new stable version; an already published RC is immutable. To retr
 ```sh
 npm run check
 npm pack --ignore-scripts
-node scripts/smoke-package.mjs dantehemerson-react-body-shape-0.1.0-rc.1.tgz
+node scripts/smoke-package.mjs dantehemerson-react-body-shape-0.1.0-rc.2.tgz
 npm audit
 ```
 

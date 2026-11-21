@@ -1,5 +1,6 @@
 import { StrictMode, useId, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { version } from '../package.json';
 import {
   BodyVisualizer, MeasurementEditor, convertMeasurements, fromMetric, resolveMeasurements,
   type BodyMeasurements, type BodyTemplate, type MeasurementUnits,
@@ -41,7 +42,7 @@ function App() {
   const [measurements, setMeasurements] = useState<BodyMeasurements>(presets.male);
   const [rings, setRings] = useState(true);
   const [grid, setGrid] = useState(true);
-  const [color, setColor] = useState('#a9b9a3');
+  const [color, setColor] = useState('#c2c5c1');
   const [muscle, setMuscle] = useState(0.35);
   const [rotate, setRotate] = useState(false);
   const [notice, setNotice] = useState('');
@@ -82,7 +83,7 @@ function App() {
           <h1 id="page-title">A study in <em>you.</em></h1>
           <p>Your measurements. A new perspective.<br className="mobile-break" /> Explore your shape in three dimensions.</p>
         </div>
-        <div className="intro-note"><span className="note-index">01 / BODY STUDIO</span><p>Not a number. Not a standard.<br />Just a little more understanding.</p><span className="version-pill">v0.1.0-rc.1 <span>PREVIEW</span></span></div>
+        <div className="intro-note"><span className="note-index">01 / BODY STUDIO</span><p>Not a number. Not a standard.<br />Just a little more understanding.</p><span className="version-pill">v{version} <span>PREVIEW</span></span></div>
       </section>
 
       <section className="workspace" aria-label="Interactive body studio">
@@ -115,7 +116,7 @@ function App() {
           <div className="display-bar">
             <div className="swatches" role="group" aria-label="Model surface color">
               <span className="control-caption">SURFACE</span>
-              {[{ color: '#a9b9a3', label: 'Sage' }, { color: '#c5b19c', label: 'Clay' }, { color: '#aeb8bf', label: 'Stone' }].map(option =>
+              {[{ color: '#a9b9a3', label: 'Sage' }, { color: '#c5b19c', label: 'Clay' }, { color: '#c2c5c1', label: 'Stone' }].map(option =>
                 <button type="button" key={option.color} aria-label={option.label} aria-pressed={color === option.color}
                   style={{ '--swatch': option.color } as React.CSSProperties} onClick={() => setColor(option.color)}><span /></button>)}
             </div>

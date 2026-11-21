@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Component, Suspense, lazy, useEffect, useId, useMemo, useState,
+  Component, Suspense, lazy, useEffect, useId, useMemo, useRef, useState,
   type CSSProperties, type ErrorInfo, type ReactNode,
 } from 'react';
 import { fromMetric, resolveMeasurements, type BodyMeasurements, type BodyTemplate, type MeasurementUnits } from './measurements';
@@ -50,15 +50,18 @@ class RenderBoundary extends Component<{
 
 export function BodyVisualizer({
   measurements, template = 'male', units = 'metric', muscle = 0.35,
-  color = '#b4c1b0', background = '#f0f0e9', measurementColor = '#47765f',
+  color = '#c2c5c1', background = '#f0f0e9', measurementColor = '#47765f',
   showMeasurements = false, showControls = true, showGrid = true,
   autoRotate = false, initialView = 'front', quality = 'medium',
   className = '', style, fallback = defaultFallback, onError,
   'aria-label': ariaLabel = 'Interactive 3D body visualization',
 }: BodyVisualizerProps) {
   const id = useId();
+  const container = useRef<HTMLElement>(null);
   const [mounted, setMounted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(true);
+  const [rendering, setRendering] = useState(true);
+  const [pageVisible, setPageVisible] = useState(true);
   const [command, setCommand] = useState<ViewCommand>({ view: initialView, turn: 0, zoom: 0, sequence: 0 });
   const signature = JSON.stringify({ measurements, template, units, muscle, quality });
   const result = useMemo(() => {
@@ -81,12 +84,33 @@ export function BodyVisualizer({
     return () => media.removeEventListener('change', update);
   }, []);
   useEffect(() => { if (result.error) onError?.(result.error); }, [result.error, onError]);
+  useEffect(() => {
+    const element = container.current!;
+    const onRenderState = (event: Event) => setRendering(!(event as Event & { skipped: boolean }).skipped);
+    const onVisibility = () => setPageVisible(!document.hidden);
+    document.addEventListener('visibilitychange', onVisibility);
+    onVisibility();
+    let observer: IntersectionObserver | undefined;
+    if ('oncontentvisibilityautostatechange' in element) {
+      // This event does not reliably bubble; listen on the containment element.
+      element.addEventListener('contentvisibilityautostatechange', onRenderState);
+    } else if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(([entry]) => setRendering(entry.isIntersecting), { rootMargin: '200px' });
+      observer.observe(element);
+    }
+    return () => {
+      element.removeEventListener('contentvisibilityautostatechange', onRenderState);
+      document.removeEventListener('visibilitychange', onVisibility);
+      observer?.disconnect();
+    };
+  }, []);
   const execute = (view: BodyView, turn = 0, zoom = 0) => setCommand(previous => ({ view, turn, zoom, sequence: previous.sequence + 1 }));
   const format = (value: number, key: 'height' | 'weight' | 'chest' | 'waist' | 'hips') =>
     `${fromMetric(value, key, units).toFixed(1)} ${key === 'weight' ? (units === 'metric' ? 'kg' : 'lb') : (units === 'metric' ? 'cm' : 'in')}`;
 
   return (
     <section
+      ref={container}
       className={`bs-viewer ${className}`}
       style={{ background, ...style }}
       aria-label={ariaLabel}
@@ -108,7 +132,7 @@ export function BodyVisualizer({
             <Suspense fallback={<div className="bs-message" role="status">Building your body…</div>}>
               <Scene body={result.body!} muscle={muscle} color={color}
                 measurementColor={measurementColor} showMeasurements={showMeasurements}
-                showGrid={showGrid} autoRotate={autoRotate && !reducedMotion}
+                showGrid={showGrid} autoRotate={autoRotate && !reducedMotion && rendering && pageVisible}
                 quality={quality} command={command} fallback={fallback} />
             </Suspense>
           </RenderBoundary>}

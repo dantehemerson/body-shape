@@ -7,5 +7,9 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   splitting: true,
+  esbuildOptions(options) {
+    // Do not duplicate the bundled model data inside source maps.
+    options.sourcesContent = false;
+  },
   external: ['react', 'react-dom', 'react/jsx-runtime', 'three', '@react-three/fiber', 'three-stdlib'],
 });
